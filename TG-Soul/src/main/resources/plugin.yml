@@ -1,0 +1,50 @@
+name: TGSoul
+version: '${project.version}'
+main: com.tgsoul.TGSoulPlugin
+api-version: '1.20'
+authors: [TGSoul]
+description: A comprehensive soul system plugin for Minecraft
+website: https://github.com/tgsoul/tgsoul
+
+softdepend: [Geyser-Spigot]
+
+commands:
+  soul:
+    description: Main soul command
+    usage: /soul <subcommand>
+    permission: tgsoul.use
+    aliases: [souls]
+  soulwithdraw:
+    description: Withdraw a soul as an item
+    usage: /soulwithdraw
+    permission: tgsoul.withdraw
+    aliases: [sw]
+  revive:
+    description: Revive a player using their souls
+    usage: /revive <player>
+    permission: tgsoul.revive
+
+permissions:
+  tgsoul.*:
+    description: All TGSoul permissions
+    children:
+      tgsoul.use: true
+      tgsoul.withdraw: true
+      tgsoul.revive: true
+      tgsoul.admin: true
+  tgsoul.use:
+    description: Basic soul commands
+    default: true
+  tgsoul.withdraw:
+    description: Withdraw souls as items
+    default: true
+  tgsoul.revive:
+    description: Revive other players
+    default: true
+  tgsoul.admin:
+    description: Admin soul commands
+    default: op
+    children:
+      tgsoul.use: true
+      tgsoul.withdraw: true
+      tgsoul.revive: true

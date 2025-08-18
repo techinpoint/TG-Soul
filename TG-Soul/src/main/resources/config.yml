@@ -1,0 +1,104 @@
+# TGSoul Configuration
+# Plugin by TGSoul - Compatible with MC 1.20-1.21.8 and GeyserMC
+
+soul:
+  # Starting number of souls for new players
+  starting: 3
+  
+  # Maximum number of souls a player can have
+  max: 3
+  
+  # What happens when a player reaches 0 souls
+  # Options: permanent, temp, spectator
+  ban-mode: "permanent"
+  
+  # Ban duration (only used if ban-mode is "temp")
+  # Format: 1d, 7d, 1h, 30m, etc.
+  ban-time: "7d"
+  
+  # Allow players to be revived
+  allow-revive: true
+  
+  # Particle effects (limited for 1.20 compatibility)
+  effects:
+    # Effect when losing souls (death, withdraw, admin take)
+    lose:
+      particle: "SMOKE_NORMAL"  # Compatible with 1.20
+      color: "GRAY"
+      count: 20
+      enabled: true
+    
+    # Effect when gaining souls (right-click, revive, admin give)
+    gain:
+      particle: "VILLAGER_HAPPY"  # Compatible with 1.20
+      color: "GREEN"
+      count: 15
+      enabled: true
+  
+  # Advanced particle effects for 1.21+ (automatically disabled for 1.20)
+  advanced-effects:
+    lose:
+      particle: "DUST"  # For 1.21+ with custom colors
+      color: "#808080"  # Gray
+      size: 1.0
+    gain:
+      particle: "DUST"
+      color: "#00FF00"  # Green
+      size: 1.0
+
+# Messages
+messages:
+  prefix: "&8[&6TG Soul&8] &r"
+  
+  # Soul management
+  souls-remaining: "&7You have &6{souls}&7 souls remaining."
+  soul-lost: "&cYou lost a soul! &7({souls} remaining)"
+  soul-gained: "&aYou gained a soul! &7({souls} total)"
+  soul-withdrawn: "&7You withdrew a soul as an item."
+  soul-consumed: "&aYou consumed a soul item!"
+  
+  # Death and revival
+  death-message: "&c{player} died and lost a soul! &7({souls} souls remaining)"
+  soul-dropped: "&7A soul was dropped at your death location."
+  revive-success: "&a{player} has been revived with {souls} souls!"
+  revive-failed: "&cRevival failed! Missing soul items for {player}."
+  revive-not-needed: "&7{player} doesn't need to be revived."
+  
+  # Punishment
+  banned-permanent: "&cYou have been permanently banned for losing all souls!"
+  banned-temporary: "&cYou have been banned for {time} for losing all souls!"
+  spectator-mode: "&7You are now in spectator mode. Collect your souls to be revived!"
+  
+  # Errors
+  not-your-soul: "&cThis soul doesn't belong to you!"
+  max-souls: "&7You already have the maximum number of souls."
+  no-souls: "&cYou don't have any souls to withdraw!"
+  player-not-found: "&cPlayer not found!"
+  invalid-amount: "&cInvalid amount!"
+  
+  # Admin
+  admin-gave-souls: "&7Gave &6{amount}&7 souls to &6{player}&7."
+  admin-took-souls: "&7Took &6{amount}&7 souls from &6{player}&7."
+  admin-set-souls: "&7Set &6{player}'s&7 souls to &6{amount}&7."
+  config-reloaded: "&aConfiguration reloaded!"
+
+# Database settings (for future expansion)
+database:
+  type: "yaml"  # Currently only YAML supported
+  auto-save: true
+  save-interval: 300  # seconds
+
+# GeyserMC compatibility
+geyser:
+  # Enable special handling for Bedrock players
+  enabled: true
+  
+  # Custom item handling for Bedrock clients
+  bedrock-items:
+    # Use different item types that work better with Bedrock
+    soul-item: "PAPER"
+    
+  # Particle adjustments for Bedrock
+  bedrock-particles:
+    # Reduce particle count for better performance on mobile
+    multiplier: 0.5

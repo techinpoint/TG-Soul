@@ -1,0 +1,109 @@
+##########################################################################
+# ████████╗ ██████╗        ██████╗ ██████╗  ██╗   ██╗ ██╗                #
+# ╚══██╔══╝██╔════╝       ██╔════╝██╔═══██╗ ██║   ██║ ██║                #
+#    ██║   ██║  ███╗      ╚█████╗ ██║   ██║ ██║   ██║ ██║                #
+#    ██║   ██║   ██║       ╚═══██╗██║   ██║ ██║   ██║ ██║                #
+#    ██║   ╚██████╔╝      ██████╔╝╚██████╔╝ ╚██████╔╝ ███████╗           #
+#    ╚═╝    ╚═════╝       ╚═════╝  ╚═════╝   ╚═════╝  ╚══════╝           #
+#                   Developed By: Prabin (Techinpoint Gamerz)            #
+#                   Youtube: www.youtube.com/@TechinpointGamerz          #
+##########################################################################
+
+
+
+
+
+# TGSoul Configuration
+# Plugin by TGSoul - Compatible with MC 1.20-1.21.8 and GeyserMC
+
+soul:
+  # Manage Sounds
+  # You can get sound list from (https://www.digminecraft.com/lists/sound_list_pc.php) but replace . with _
+  sounds:
+    revival: BLOCK_END_PORTAL_SPAWN # Sound when using Revival Token
+    withdraw: ENTITY_WITHER_SPAWN    # Sound when withdrawing a soul
+    gain: BLOCK_NOTE_BLOCK_PLING  # Sound when gaining a soul
+  # Starting number of souls for new players
+  starting: 3
+  
+  # Maximum number of souls a player can have
+  max: 3
+  
+  # Material used for soul items (both Java and Bedrock)
+  material: "GHAST_TEAR"
+  
+  # What happens when a player reaches 0 souls
+  # Options: permanent, temp, spectator
+  ban-mode: "permanent"
+  
+  # Ban duration (only used if ban-mode is "temp")
+  # Format: 1d, 7d, 1h, 30m, etc.
+  ban-time: "7d"
+  
+  # Allow players to be revived using Revival Token
+  allow-revive: true
+
+  revival-token:
+    # Material for the Revival Token
+    material: "BEACON"
+
+    # Recipe for Revival Token (3x3 crafting grid)
+    # Use "SOUL_ITEM" as a placeholder for positions requiring the player's own soul items
+    # Gui Will automatically updated after updated here.
+revival-token:
+  recipe:
+    a11: "NETHERITE_BLOCK"
+    a12: "NETHER_STAR"
+    a13: "NETHERITE_BLOCK"
+    a21: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
+    a22: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
+    a23: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
+    a31: "NETHERITE_BLOCK"
+    a32: "NETHER_STAR"
+    a33: "NETHERITE_BLOCK"
+
+
+  effects:
+    lose:
+      particle: "SMOKE"  # Updated for 1.20 compatibility
+      color: "GRAY"
+      count: 20
+      enabled: true
+    gain:
+      particle: "HAPPY_VILLAGER"  # Updated for 1.20 compatibility
+      color: "GREEN"
+      count: 15
+      enabled: true
+
+  # Advanced particle effects for 1.21+ (automatically disabled for 1.20)
+  advanced-effects:
+    lose:
+      particle: "DUST"  # For 1.21+ with custom colors
+      color: "#808080"  # Gray
+      size: 1.0
+    gain:
+      particle: "DUST"
+      color: "#00FF00"  # Green
+      size: 1.0
+
+
+# Database settings (for future expansion)
+database:
+  type: "yaml"  # Currently only YAML supported
+  auto-save: true
+  save-interval: 300  # seconds
+
+# GeyserMC compatibility
+geyser:
+  # Enable special handling for Bedrock players
+  enabled: true
+  
+  # Custom item handling for Bedrock clients
+  bedrock-items:
+    # Use same material for both Java and Bedrock
+    soul-item: "GHAST_TEAR"
+    
+  # Particle adjustments for Bedrock
+  bedrock-particles:
+    # Reduce particle count for better performance on mobile
+    multiplier: 0.5

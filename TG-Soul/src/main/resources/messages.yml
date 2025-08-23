@@ -1,0 +1,71 @@
+##########################################################################
+# ████████╗ ██████╗        ██████╗ ██████╗  ██╗   ██╗ ██╗                #
+# ╚══██╔══╝██╔════╝       ██╔════╝██╔═══██╗ ██║   ██║ ██║                #
+#    ██║   ██║  ███╗      ╚█████╗ ██║   ██║ ██║   ██║ ██║                #
+#    ██║   ██║   ██║       ╚═══██╗██║   ██║ ██║   ██║ ██║                #
+#    ██║   ╚██████╔╝      ██████╔╝╚██████╔╝ ╚██████╔╝ ███████╗           #
+#    ╚═╝    ╚═════╝       ╚═════╝  ╚═════╝   ╚═════╝  ╚══════╝           #
+#                   Developed By: Prabin (Techinpoint Gamerz)            #
+#                   Youtube: www.youtube.com/@TechinpointGamerz          #
+##########################################################################
+
+
+prefix: "&8[&6TG Soul&8] &r"
+
+# Soul management
+souls-remaining: "&7You have &6{souls}&7 souls remaining."
+soul-lost: "&cYou lost a soul! &7({souls} remaining)"
+soul-gained: "&aYou gained a soul! &7({souls} total)"
+soul-withdrawn: "&7You withdrew a soul as an item."
+soul-consumed: "&aYou consumed a soul item!"
+
+# Death and revival
+death-message: "&c{player} died and lost a soul! &7({souls} souls remaining)"
+soul-dropped: "&7A soul was dropped at your death location."
+revival-token-placed: "&aRevival Token placed! {player} has been revived in death location!"
+revival-token-used: "&aYou have been revived by {reviver} using a Revival Token!"
+revival-token-no-target: "&cThis Revival Token has no target player!"
+
+# Punishment
+banned-permanent: "&cYou have been permanently banned for losing all souls! Only admins can unban you now."
+banned-temporary: "&cYou have been banned for {time} for losing all souls!"
+spectator-mode: "&7You are now in spectator mode. Use a Revival Token to be revived!"
+
+# Errors
+not-your-soul: "&cThis soul doesn't belong to you!"
+max-souls: "&7You already have the maximum number of souls."
+no-souls: "&cYou don't have any souls to withdraw!"
+cannot-withdraw-last-soul: "&cYou cannot withdraw your last soul!"
+player-not-found: "&cPlayer not found!"
+invalid-amount: "&cInvalid amount!"
+wrong-soul-owner: "&cYou can only use your own souls!"
+
+# Admin
+no-permission: "&cYou don't have permission to use this command!"
+admin-gave-souls: "&7Gave &6{amount}&7 souls to &6{player}&7."
+admin-took-souls: "&7Took &6{amount}&7 souls from &6{player}&7."
+admin-set-souls: "&7Set &6{player}'s&7 souls to &6{amount}&7."
+admin-unbanned: "&7Unbanned &6{player}&7 and restored their souls."
+config-reloaded: "&aConfiguration reloaded!"
+
+# Help messages
+help-header: "&6&l=== TGSoul Help ==="
+help-soul: "&6/soul &7- Check your soul count"
+help-soul-help: "&6/soul help &7- Show this help menu"
+help-soul-recipe: "&6/soul recipe &7- View Revival Token recipe"
+help-soul-top: "&6/soul top [limit] &7- View top players by souls"
+help-soul-stats: "&6/soul stats [player] &7- View player statistics"
+help-soulwithdraw: "&6/soulwithdraw &7- Withdraw a soul as an item"
+help-admin-header: "&c&lAdmin Commands:"
+help-admin-give: "&c/soul give <player> <amount> &7- Give souls to a player"
+help-admin-take: "&c/soul take <player> <amount> &7- Take souls from a player"
+help-admin-set: "&c/soul set <player> <amount> &7- Set player's souls"
+help-admin-get: "&c/soul get <player> &7- Check player's souls"
+help-admin-reload: "&c/soul reload &7- Reload configuration"
+help-admin-unban: "&c/soul unban <player> &7- Unban and restore a player"
+help-admin-pack: "&c/soul pack <player> <1-10> &7- Set player's soul CustomModelData"
+
+# Recipe GUI
+recipe-gui-title: "&6Revival Token Recipe"
+recipe-gui-info: "&7Place these items in a crafting table to create a Revival Token"
+recipe-gui-soul-info: "&7Use 3 of YOUR OWN souls in these positions"

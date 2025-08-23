@@ -26,28 +26,30 @@ public class PlayerDeathListener implements Listener {
         
         // Check if soul should drop based on death cause
         boolean shouldDropSoul = true;
-        if (!plugin.getConfigManager().getConfig().getBoolean("soul.drop-on-mob-death", false)) {
+        if (!plugin.getConfigManager().shouldDropOnMobDeath()) {
             Entity killer = player.getKiller();
             if (killer instanceof LivingEntity && !(killer instanceof Player)) {
                 shouldDropSoul = false;
             }
         }
         
-        PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(event.getEntity());
-        plugin.getSoulManager().removeSouls(event.getEntity(), 1);
+        // Remove soul first
+        plugin.getSoulManager().removeSouls(player, 1);
         
+        // Drop soul item if conditions are met
         if (shouldDropSoul) {
-            plugin.getSoulManager().dropSoulItem(event.getEntity());
+            plugin.getSoulManager().dropSoulItem(player);
         }
         
         // Get updated soul count after removal
-        PlayerSoulData updatedData = plugin.getSoulManager().getOrCreatePlayerData(event.getEntity());
+        PlayerSoulData updatedData = plugin.getSoulManager().getOrCreatePlayerData(player);
         int remainingSouls = updatedData.getSouls();
         
+        // Create custom death message
         String deathMessage = plugin.getMessageUtil().getMessage("death-message",
-                Map.of("player", event.getEntity().getName(), "souls", String.valueOf(remainingSouls)));
+                Map.of("player", player.getName(), "souls", String.valueOf(remainingSouls)));
         
-        // Set death message to prevent double messages
+        // Set the death message (this prevents default death message)
         event.setDeathMessage(deathMessage);
     }
 }

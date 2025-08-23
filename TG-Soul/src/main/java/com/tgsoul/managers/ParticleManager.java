@@ -23,7 +23,7 @@ public class ParticleManager {
         Location location = player.getLocation().add(0, 1, 0);
 
         if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playSmashGroundEffect(player, location, true); // true for lose effect
+            playAdvancedLoseEffect(player, location);
         } else {
             playLegacyLoseEffect(player, location);
         }
@@ -37,65 +37,109 @@ public class ParticleManager {
         Location location = player.getLocation().add(0, 1, 0);
 
         if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playSmashGroundEffect(player, location, false); // false for gain effect
+            playAdvancedGainEffect(player, location);
         } else {
             playLegacyGainEffect(player, location);
         }
     }
 
+    /**
+     * Legacy effects for Minecraft 1.20 and below
+     * Uses "smash_ground" particle with gray color for lose
+     */
     private void playLegacyLoseEffect(Player player, Location location) {
         try {
-            // Use SMOKE_NORMAL for 1.10-1.20 via ViaBackwards
+            // For legacy versions, use SMOKE_NORMAL as fallback for "smash_ground"
             Particle particle = Particle.SMOKE_NORMAL;
-            int count = getAdjustedParticleCount(player, 20);
+            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getLoseParticleCount());
+            
+            // Spawn particles with spread
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Failed to spawn smoke particle. Falling back to default.");
-            int count = getAdjustedParticleCount(player, 20);
-            player.spawnParticle(Particle.SMOKE_NORMAL, location, count, 0.5, 0.5, 0.5, 0.1);
+            
+            plugin.getLogger().fine("Played legacy lose effect for " + player.getName() + " with " + count + " particles");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to spawn legacy lose particle for " + player.getName() + ": " + e.getMessage());
         }
     }
 
+    /**
+     * Legacy effects for Minecraft 1.20 and below
+     * Uses "smash_ground" particle with cyan color for gain
+     */
     private void playLegacyGainEffect(Player player, Location location) {
         try {
-            // Use VILLAGER_HAPPY for 1.10-1.20 via ViaBackwards
+            // For legacy versions, use VILLAGER_HAPPY as fallback for "smash_ground"
             Particle particle = Particle.VILLAGER_HAPPY;
-            int count = getAdjustedParticleCount(player, 15);
+            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getGainParticleCount());
+            
+            // Spawn particles with spread
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Failed to spawn happy_villager particle. Falling back to default.");
-            int count = getAdjustedParticleCount(player, 15);
-            player.spawnParticle(Particle.VILLAGER_HAPPY, location, count, 0.5, 0.5, 0.5, 0.1);
+            
+            plugin.getLogger().fine("Played legacy gain effect for " + player.getName() + " with " + count + " particles");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to spawn legacy gain particle for " + player.getName() + ": " + e.getMessage());
         }
     }
 
-    private void playSmashGroundEffect(Player player, Location location, boolean isLoseEffect) {
+    /**
+     * Advanced effects for Minecraft 1.21+
+     * Uses DUST_PILLAR particle with gray color and size 1.0 for lose
+     */
+    private void playAdvancedLoseEffect(Player player, Location location) {
         try {
-            // Use DUST_PILLAR (mace smash particle) for 1.21+
             Particle particle = Particle.DUST_PILLAR;
-            
-            // Get color based on effect type
-            String colorHex = isLoseEffect ? 
-                plugin.getConfigManager().getAdvancedLoseColor() : 
-                plugin.getConfigManager().getAdvancedGainColor();
+            String colorHex = plugin.getConfigManager().getAdvancedLoseColor();
             Color color = parseColor(colorHex);
-            double size = plugin.getConfigManager().getAdvancedParticleSize();
+            double size = plugin.getConfigManager().getAdvancedLoseSize();
             
             // Create dust options for the pillar effect
             Particle.DustOptions dustOptions = new Particle.DustOptions(color, (float) size);
             
-            int count = getAdjustedParticleCount(player, isLoseEffect ? 20 : 15);
+            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getLoseParticleCount());
+            
+            // Spawn DUST_PILLAR particles
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
+            
+            plugin.getLogger().fine("Played advanced lose effect for " + player.getName() + 
+                " with color " + colorHex + ", size " + size + ", count " + count);
         } catch (Exception e) {
-            // Fallback to legacy effects if DUST_PILLAR is not available
-            if (isLoseEffect) {
-                playLegacyLoseEffect(player, location);
-            } else {
-                playLegacyGainEffect(player, location);
-            }
+            plugin.getLogger().warning("Failed to spawn advanced lose particle for " + player.getName() + 
+                ": " + e.getMessage() + ". Falling back to legacy effect.");
+            playLegacyLoseEffect(player, location);
         }
     }
 
+    /**
+     * Advanced effects for Minecraft 1.21+
+     * Uses DUST_PILLAR particle with cyan color and size 1.2 for gain
+     */
+    private void playAdvancedGainEffect(Player player, Location location) {
+        try {
+            Particle particle = Particle.DUST_PILLAR;
+            String colorHex = plugin.getConfigManager().getAdvancedGainColor();
+            Color color = parseColor(colorHex);
+            double size = plugin.getConfigManager().getAdvancedGainSize();
+            
+            // Create dust options for the pillar effect
+            Particle.DustOptions dustOptions = new Particle.DustOptions(color, (float) size);
+            
+            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getGainParticleCount());
+            
+            // Spawn DUST_PILLAR particles
+            player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
+            
+            plugin.getLogger().fine("Played advanced gain effect for " + player.getName() + 
+                " with color " + colorHex + ", size " + size + ", count " + count);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to spawn advanced gain particle for " + player.getName() + 
+                ": " + e.getMessage() + ". Falling back to legacy effect.");
+            playLegacyGainEffect(player, location);
+        }
+    }
+
+    /**
+     * Parses hex color string to Bukkit Color
+     */
     private Color parseColor(String hexColor) {
         try {
             if (hexColor.startsWith("#")) {
@@ -109,10 +153,14 @@ public class ParticleManager {
 
             return Color.fromRGB(r, g, b);
         } catch (Exception e) {
+            plugin.getLogger().warning("Invalid color format: " + hexColor + ". Using default gray.");
             return Color.GRAY; // Default color
         }
     }
 
+    /**
+     * Adjusts particle count for Bedrock players if Geyser is present
+     */
     private int getAdjustedParticleCount(Player player, int baseCount) {
         if (plugin.isGeyserPresent() && GeyserUtil.isBedrockPlayer(player)) {
             double multiplier = plugin.getConfigManager().getBedrockParticleMultiplier();
@@ -121,11 +169,12 @@ public class ParticleManager {
         return baseCount;
     }
 
-    // Optional reload method for consistency (no-op since no caching, but safe)
+    /**
+     * Reload method for configuration changes
+     */
     public void reload() {
         try {
-            // No cached values to reload, but validate particle names if needed in future
-            plugin.getLogger().info("ParticleManager reloaded successfully (no changes needed).");
+            plugin.getLogger().info("ParticleManager reloaded successfully.");
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to reload ParticleManager: " + e.getMessage());
             e.printStackTrace();

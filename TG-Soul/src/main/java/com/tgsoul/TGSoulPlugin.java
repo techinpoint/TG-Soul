@@ -13,6 +13,7 @@ import com.tgsoul.managers.ParticleManager;
 import com.tgsoul.managers.SoulManager;
 import com.tgsoul.utils.MessageUtil;
 import com.tgsoul.utils.VersionUtil;
+import com.tgsoul.utils.ItemUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -39,6 +40,9 @@ public class TGSoulPlugin extends JavaPlugin {
         // Register commands & listeners
         registerCommands();
         registerListeners();
+
+        // Register soul item models for resource pack compatibility
+        ItemUtil.registerSoulModels();
 
         // GeyserMC check
         checkGeyserCompatibility();

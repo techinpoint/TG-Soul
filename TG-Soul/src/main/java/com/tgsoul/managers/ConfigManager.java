@@ -45,7 +45,8 @@ public class ConfigManager {
     public String getAdvancedGainParticle() { return config.getString("soul.advanced-effects.gain.particle", "DUST"); }
     public String getAdvancedLoseColor() { return config.getString("soul.advanced-effects.lose.color", "#808080"); }
     public String getAdvancedGainColor() { return config.getString("soul.advanced-effects.gain.color", "#00FF00"); }
-    public double getAdvancedParticleSize() { return config.getDouble("soul.advanced-effects.lose.size", 1.0); }
+    public double getAdvancedLoseSize() { return config.getDouble("soul.advanced-effects.lose.size", 1.0); }
+    public double getAdvancedGainSize() { return config.getDouble("soul.advanced-effects.gain.size", 1.2); }
     public boolean isGeyserEnabled() { return config.getBoolean("geyser.enabled", true); }
     public String getBedrockSoulItem() { return config.getString("geyser.bedrock-items.soul-item", "GHAST_TEAR"); }
     public double getBedrockParticleMultiplier() { return config.getDouble("geyser.bedrock-particles.multiplier", 0.5); }
@@ -74,5 +75,22 @@ public class ConfigManager {
     // New getter for drop-on-mob-death setting
     public boolean shouldDropOnMobDeath() {
         return config.getBoolean("soul.drop-on-mob-death", false);
+    }
+
+    // CustomModelData system getters
+    public boolean isCustomModelDataEnabled() {
+        return config.getBoolean("soul.custom-model-data.enabled", true);
+    }
+
+    public int getDefaultCustomModelData() {
+        return config.getInt("soul.custom-model-data.default", 0);
+    }
+
+    public int getMinCustomModelData() {
+        return config.getInt("soul.custom-model-data.min", 1);
+    }
+
+    public int getMaxCustomModelData() {
+        return config.getInt("soul.custom-model-data.max", 10);
     }
 }

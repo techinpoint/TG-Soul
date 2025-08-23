@@ -53,20 +53,29 @@ soul:
     # Recipe for Revival Token (3x3 crafting grid)
     # Use "SOUL_ITEM" as a placeholder for positions requiring the player's own soul items
     # Gui Will automatically updated after updated here.
-revival-token:
-  recipe:
-    a11: "NETHERITE_BLOCK"
-    a12: "NETHER_STAR"
-    a13: "NETHERITE_BLOCK"
-    a21: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
-    a22: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
-    a23: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
-    a31: "NETHERITE_BLOCK"
-    a32: "NETHER_STAR"
-    a33: "NETHERITE_BLOCK"
+    recipe:
+      a11: "NETHERITE_BLOCK"
+      a12: "NETHER_STAR"
+      a13: "NETHERITE_BLOCK"
+      a21: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
+      a22: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
+      a23: "SOUL_ITEM" # Placeholder for player's soul item (dynamically validated)
+      a31: "NETHERITE_BLOCK"
+      a32: "NETHER_STAR"
+      a33: "NETHERITE_BLOCK"
 
+  # Soul CustomModelData system
+  custom-model-data:
+    # Enable CustomModelData system
+    enabled: true
+    # Default CMD for fallback (when no resource pack)
+    default: 0
+    # Range for random assignment (1-10)
+    min: 1
+    max: 10
 
   effects:
+    # Legacy effects for Minecraft 1.20 and below
     lose:
       particle: "smash_ground"  # Updated for 1.21+ compatibility (mace smash effect)
       color: "#808080"  # Gray for lose/withdraw
@@ -74,11 +83,11 @@ revival-token:
       enabled: true
     gain:
       particle: "smash_ground"  # Updated for 1.21+ compatibility (mace smash effect)
-      color: "#00FF00"  # Green for gain
+      color: "#00FFFF"  # Cyan for gain
       count: 15
       enabled: true
 
-  # Advanced particle effects for 1.21+ (uses dust_pillar particle)
+  # Advanced particle effects for 1.21+ (uses DUST_PILLAR particle)
   advanced-effects:
     lose:
       particle: "DUST_PILLAR"  # For 1.21+ with custom colors
@@ -86,8 +95,8 @@ revival-token:
       size: 1.0
     gain:
       particle: "DUST_PILLAR"
-      color: "#00FF00"  # Green
-      size: 1.0
+      color: "#00FFFF"  # Cyan
+      size: 1.2
 
 
 # Database settings (for future expansion)

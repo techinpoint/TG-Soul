@@ -28,7 +28,7 @@ public class SoulManager {
     private final Map<UUID, PlayerSoulData> playerData;
     private final Map<UUID, Integer> playerCustomModelData;
     private final File dataFile;
-    private final FileConfiguration dataConfig; // Remains final
+    private FileConfiguration dataConfig;
     private final NamespacedKey recipeKey;
 
     public SoulManager(TGSoulPlugin plugin) {
@@ -36,10 +36,14 @@ public class SoulManager {
         this.playerData = new ConcurrentHashMap<>();
         this.playerCustomModelData = new ConcurrentHashMap<>();
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
-        this.dataConfig = YamlConfiguration.loadConfiguration(dataFile); // Initialized once
         this.recipeKey = new NamespacedKey(plugin, "revival_token");
+        initializeDataConfig();
         loadData();
         registerRevivalTokenRecipe();
+    }
+
+    private void initializeDataConfig() {
+        this.dataConfig = YamlConfiguration.loadConfiguration(dataFile);
     }
 
     public void loadData() {
@@ -54,13 +58,8 @@ public class SoulManager {
             }
         }
 
-        // Load configuration into a temporary variable
-        FileConfiguration tempConfig = YamlConfiguration.loadConfiguration(dataFile);
-
-        // Update dataConfig with new content without reassignment
-        for (String key : tempConfig.getKeys(true)) {
-            dataConfig.set(key, tempConfig.get(key));
-        }
+        // Reload the data configuration
+        dataConfig = YamlConfiguration.loadConfiguration(dataFile);
 
         // Load all player data
         for (String uuidString : dataConfig.getKeys(false)) {
@@ -70,7 +69,8 @@ public class SoulManager {
                 int souls = dataConfig.getInt(uuidString + ".souls", getStartingSouls());
                 boolean needsRevival = dataConfig.getBoolean(uuidString + ".needsRevival", false);
                 String lastSeen = dataConfig.getString(uuidString + ".lastSeen", "Never");
-                int customModelData = dataConfig.getInt(uuidString + ".customModelData", 1);
+                int customModelData = dataConfig.getInt(uuidString + ".customModelData", 
+                    plugin.getConfigManager().getDefaultCustomModelData());
 
                 PlayerSoulData data = new PlayerSoulData(uuid, playerName, souls, needsRevival, lastSeen);
                 playerData.put(uuid, data);
@@ -138,6 +138,13 @@ public class SoulManager {
             data = new PlayerSoulData(uuid, player.getName(), getStartingSouls(), false,
                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             playerData.put(uuid, data);
+            
+            // Assign CustomModelData for new players
+            if (!playerCustomModelData.containsKey(uuid)) {
+                int defaultCmd = plugin.getConfigManager().getDefaultCustomModelData();
+                playerCustomModelData.put(uuid, defaultCmd);
+            }
+            
             savePlayerData(data); // Save immediately on creation
             saveToFile(); // Ensure file is updated
         } else {
@@ -310,7 +317,7 @@ public class SoulManager {
     public ItemStack createSoulItem(String ownerName) {
         String material = plugin.getConfigManager().getSoulMaterial();
         
-        // Find the player's UUID to get their CustomModelData if resource pack is set
+        // Find the player's UUID to get their CustomModelData
         UUID playerUUID = null;
         for (Map.Entry<UUID, PlayerSoulData> entry : playerData.entrySet()) {
             if (entry.getValue().getPlayerName().equalsIgnoreCase(ownerName)) {
@@ -319,13 +326,14 @@ public class SoulManager {
             }
         }
         
-        // Only apply CustomModelData if resource pack is set
-        if (!Bukkit.getServer().getResourcePack().isEmpty() && 
-            playerUUID != null && playerCustomModelData.containsKey(playerUUID)) {
+        // Get CustomModelData for the player
+        if (playerUUID != null && playerCustomModelData.containsKey(playerUUID)) {
             int customModelData = playerCustomModelData.get(playerUUID);
-            return ItemUtil.createSoulItemWithCustomModelData(ownerName, material, customModelData);
+            return ItemUtil.createSoulItem(ownerName, material, customModelData);
         } else {
-            return ItemUtil.createSoulItem(ownerName, material);
+            // Use default CustomModelData
+            int defaultCmd = plugin.getConfigManager().getDefaultCustomModelData();
+            return ItemUtil.createSoulItem(ownerName, material, defaultCmd);
         }
     }
 
@@ -345,29 +353,24 @@ public class SoulManager {
         savePlayerData(data); // Save after change
         saveToFile(); // Ensure file is updated
         
-        // Create soul item with player's CustomModelData
+        // Create soul item with the player's CustomModelData
         String material = plugin.getConfigManager().getSoulMaterial();
-        ItemStack soulItem;
-        
-        // Only apply CustomModelData if resource pack is set
-        if (!Bukkit.getServer().getResourcePack().isEmpty()) {
-            Integer customModelData = playerCustomModelData.get(player.getUniqueId());
-            if (customModelData != null) {
-                soulItem = ItemUtil.createSoulItemWithCustomModelData(player.getName(), material, customModelData);
-            } else {
-                soulItem = ItemUtil.createSoulItem(player.getName(), material);
-            }
-        } else {
-            soulItem = ItemUtil.createSoulItem(player.getName(), material);
+        Integer customModelData = playerCustomModelData.get(player.getUniqueId());
+        if (customModelData == null) {
+            customModelData = plugin.getConfigManager().getDefaultCustomModelData();
         }
         
+        ItemStack soulItem = ItemUtil.createSoulItem(player.getName(), material, customModelData);
+        
+        // Give the soul item to the player
         if (player.getInventory().firstEmpty() != -1) {
             player.getInventory().addItem(soulItem);
         } else {
             player.getWorld().dropItemNaturally(player.getLocation(), soulItem);
         }
+        
         plugin.getParticleManager().playLoseEffect(player);
-        SoundUtil.playSound(player, plugin.getConfigManager().getWithdrawSound());  // Add this line
+        SoundUtil.playSound(player, plugin.getConfigManager().getWithdrawSound());
         plugin.getMessageUtil().sendMessage(player, "soul-withdrawn", 
                 Map.of("souls", String.valueOf(data.getSouls())));
         return true;
@@ -400,6 +403,16 @@ public class SoulManager {
 
     public Integer getPlayerCustomModelData(UUID uuid) {
         return playerCustomModelData.get(uuid);
+    }
+
+    public int getPlayerCustomModelDataByName(String playerName) {
+        for (Map.Entry<UUID, PlayerSoulData> entry : playerData.entrySet()) {
+            if (entry.getValue().getPlayerName().equalsIgnoreCase(playerName)) {
+                Integer cmd = playerCustomModelData.get(entry.getKey());
+                return cmd != null ? cmd : plugin.getConfigManager().getDefaultCustomModelData();
+            }
+        }
+        return plugin.getConfigManager().getDefaultCustomModelData();
     }
     private void registerRevivalTokenRecipe() {
         try {

@@ -342,20 +342,55 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
 
         try {
             int customModelData = Integer.parseInt(args[2]);
-            if (customModelData < 1 || customModelData > 10) {
-                sender.sendMessage("§cCustomModelData must be between 1 and 10.");
+            int minCmd = plugin.getConfigManager().getMinCustomModelData();
+            int maxCmd = plugin.getConfigManager().getMaxCustomModelData();
+            int defaultCmd = plugin.getConfigManager().getDefaultCustomModelData();
+            
+            // Allow default CMD (0) and range (1-10)
+            if (customModelData != defaultCmd && (customModelData < minCmd || customModelData > maxCmd)) {
+                sender.sendMessage("§cCustomModelData must be " + defaultCmd + " (default) or between " + 
+                    minCmd + " and " + maxCmd + ".");
                 return true;
             }
 
             // Set the player's CustomModelData
             plugin.getSoulManager().setPlayerCustomModelData(target.getUniqueId(), customModelData);
             
+            // Update any existing soul items in the player's inventory
+            updatePlayerSoulItems(target, customModelData);
+            
             sender.sendMessage("§aSet §6" + target.getName() + "§a's soul CustomModelData to §6" + customModelData + "§a.");
+            target.sendMessage("§aYour soul variant has been updated to: §6" + 
+                (customModelData == 0 ? "Default" : "Variant " + customModelData));
         } catch (NumberFormatException e) {
-            sender.sendMessage("§cInvalid CustomModelData. Must be a number between 1 and 10.");
+            int minCmd = plugin.getConfigManager().getMinCustomModelData();
+            int maxCmd = plugin.getConfigManager().getMaxCustomModelData();
+            int defaultCmd = plugin.getConfigManager().getDefaultCustomModelData();
+            sender.sendMessage("§cInvalid CustomModelData. Must be " + defaultCmd + " (default) or between " + 
+                minCmd + " and " + maxCmd + ".");
         }
 
         return true;
+    }
+
+    /**
+     * Updates all soul items in a player's inventory to match their new CustomModelData
+     */
+    private void updatePlayerSoulItems(Player player, int newCustomModelData) {
+        String material = plugin.getConfigManager().getSoulMaterial();
+        
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            
+            if (ItemUtil.isSoulItem(item) && ItemUtil.isOwnedBy(item, player.getName())) {
+                // Replace with new soul item with updated CustomModelData
+                ItemStack newSoulItem = ItemUtil.createSoulItem(player.getName(), material, newCustomModelData);
+                newSoulItem.setAmount(item.getAmount()); // Preserve stack size
+                player.getInventory().setItem(i, newSoulItem);
+            }
+        }
+        
+        player.sendMessage("§aUpdated all your soul items to the new variant!");
     }
 
     @Override
@@ -382,7 +417,11 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
                 }
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("pack")) {
-            for (int i = 1; i <= 10; i++) {
+            // Add default (0) and range (1-10) options
+            completions.add("0");
+            int minCmd = plugin.getConfigManager().getMinCustomModelData();
+            int maxCmd = plugin.getConfigManager().getMaxCustomModelData();
+            for (int i = minCmd; i <= maxCmd; i++) {
                 completions.add(String.valueOf(i));
             }
         }

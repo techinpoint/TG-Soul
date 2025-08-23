@@ -70,4 +70,9 @@ public class ConfigManager {
     public String getGainSound() {
         return config.getString("soul.sounds.gain", "ENTITY_EXPERIENCE_ORB_PICKUP");
     }
+
+    // New getter for drop-on-mob-death setting
+    public boolean shouldDropOnMobDeath() {
+        return config.getBoolean("soul.drop-on-mob-death", false);
+    }
 }

@@ -43,6 +43,9 @@ soul:
   # Allow players to be revived using Revival Token
   allow-revive: true
 
+  # Drop soul on mob death (if false, souls only drop on PvP/environmental deaths)
+  drop-on-mob-death: false
+
   revival-token:
     # Material for the Revival Token
     material: "BEACON"
@@ -65,24 +68,24 @@ revival-token:
 
   effects:
     lose:
-      particle: "SMOKE"  # Updated for 1.20 compatibility
-      color: "GRAY"
+      particle: "smash_ground"  # Updated for 1.21+ compatibility (mace smash effect)
+      color: "#808080"  # Gray for lose/withdraw
       count: 20
       enabled: true
     gain:
-      particle: "HAPPY_VILLAGER"  # Updated for 1.20 compatibility
-      color: "GREEN"
+      particle: "smash_ground"  # Updated for 1.21+ compatibility (mace smash effect)
+      color: "#00FF00"  # Green for gain
       count: 15
       enabled: true
 
-  # Advanced particle effects for 1.21+ (automatically disabled for 1.20)
+  # Advanced particle effects for 1.21+ (uses dust_pillar particle)
   advanced-effects:
     lose:
-      particle: "DUST"  # For 1.21+ with custom colors
+      particle: "DUST_PILLAR"  # For 1.21+ with custom colors
       color: "#808080"  # Gray
       size: 1.0
     gain:
-      particle: "DUST"
+      particle: "DUST_PILLAR"
       color: "#00FF00"  # Green
       size: 1.0
 

@@ -16,7 +16,7 @@ prefix: "&8[&6TG Soul&8] &r"
 souls-remaining: "&7You have &6{souls}&7 souls remaining."
 soul-lost: "&cYou lost a soul! &7({souls} remaining)"
 soul-gained: "&aYou gained a soul! &7({souls} total)"
-soul-withdrawn: "&7You withdrew a soul as an item."
+soul-withdrawn: "&7You withdrew a soul as an item. &7({souls} remaining)"
 soul-consumed: "&aYou consumed a soul item!"
 
 # Death and revival

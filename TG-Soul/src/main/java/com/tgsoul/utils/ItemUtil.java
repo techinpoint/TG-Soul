@@ -14,7 +14,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 public class ItemUtil {
     
@@ -53,17 +52,6 @@ public class ItemUtil {
             
             meta.getPersistentDataContainer().set(ownerKey, PersistentDataType.STRING, ownerName);
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "soul");
-            
-            // Check if resource pack is set and apply CustomModelData
-            if (!Bukkit.getServer().getResourcePack().isEmpty()) {
-                Random random = new Random();
-                int customModelData = random.nextInt(10) + 1; // 1-10
-                meta.setCustomModelData(customModelData);
-                
-                // Store CustomModelData in persistent data for consistency
-                NamespacedKey cmdKey = new NamespacedKey("tgsoul", CUSTOM_MODEL_DATA_KEY);
-                meta.getPersistentDataContainer().set(cmdKey, PersistentDataType.INTEGER, customModelData);
-            }
             
             // Add enchantment glow effect
             meta.addEnchant(Enchantment.UNBREAKING, 1, true);

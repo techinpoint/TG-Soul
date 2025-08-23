@@ -110,8 +110,9 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             }
 
             PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(target);
-            if (data.getSouls() + amount > plugin.getSoulManager().getMaxSouls()) {
-                sender.sendMessage("§cPlayer already has maximum no of Souls");
+            int maxSouls = plugin.getSoulManager().getMaxSouls();
+            if (data.getSouls() + amount > maxSouls) {
+                sender.sendMessage("§cPlayer already has maximum no of Souls.");
                 return true;
             }
 
@@ -228,8 +229,9 @@ public class SoulCommand implements CommandExecutor, TabCompleter {
             // If player is not banned but has < max souls, set to max
             if (target != null) {
                 PlayerSoulData data = plugin.getSoulManager().getOrCreatePlayerData(target);
-                if (data.getSouls() < plugin.getSoulManager().getMaxSouls()) {
-                    plugin.getSoulManager().setSouls(target, plugin.getSoulManager().getMaxSouls());
+                int maxSouls = plugin.getSoulManager().getMaxSouls();
+                if (data.getSouls() < maxSouls) {
+                    plugin.getSoulManager().setSouls(target, maxSouls);
                     sender.sendMessage("§aSet §6" + playerName + "§a's souls to maximum.");
                 } else {
                     sender.sendMessage("§cPlayer not found or not banned, and already has maximum souls.");

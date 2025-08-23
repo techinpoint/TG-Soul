@@ -161,7 +161,10 @@ public class SoulManager {
         if (newAmount == 0) {
             handleNoSoulsLeft(player, data);
         } else {
-            plugin.getMessageUtil().sendMessage(player, "soul-lost", Map.of("souls", String.valueOf(newAmount)));
+            // Only send message if not handling death (to prevent double messages)
+            if (player.getHealth() > 0) {
+                plugin.getMessageUtil().sendMessage(player, "soul-lost", Map.of("souls", String.valueOf(newAmount)));
+            }
         }
     }
 
@@ -244,12 +247,17 @@ public class SoulManager {
     public void addSouls(Player player, int amount) {
         PlayerSoulData data = getOrCreatePlayerData(player);
         int newAmount = Math.min(data.getSouls() + amount, getMaxSouls());
+        int oldAmount = data.getSouls();
         data.setSouls(newAmount);
         savePlayerData(data); // Save after change
         saveToFile(); // Ensure file is updated
         plugin.getParticleManager().playGainEffect(player);
         SoundUtil.playSound(player, plugin.getConfigManager().getGainSound());
-        plugin.getMessageUtil().sendMessage(player, "soul-gained", Map.of("souls", String.valueOf(newAmount)));
+        
+        // Only send message if souls actually increased
+        if (newAmount > oldAmount) {
+            plugin.getMessageUtil().sendMessage(player, "soul-gained", Map.of("souls", String.valueOf(newAmount)));
+        }
     }
 
     public boolean canRevivePlayer(String playerName) {
@@ -302,7 +310,7 @@ public class SoulManager {
     public ItemStack createSoulItem(String ownerName) {
         String material = plugin.getConfigManager().getSoulMaterial();
         
-        // Find the player's UUID to get their CustomModelData
+        // Find the player's UUID to get their CustomModelData if resource pack is set
         UUID playerUUID = null;
         for (Map.Entry<UUID, PlayerSoulData> entry : playerData.entrySet()) {
             if (entry.getValue().getPlayerName().equalsIgnoreCase(ownerName)) {
@@ -311,7 +319,9 @@ public class SoulManager {
             }
         }
         
-        if (playerUUID != null && playerCustomModelData.containsKey(playerUUID)) {
+        // Only apply CustomModelData if resource pack is set
+        if (!Bukkit.getServer().getResourcePack().isEmpty() && 
+            playerUUID != null && playerCustomModelData.containsKey(playerUUID)) {
             int customModelData = playerCustomModelData.get(playerUUID);
             return ItemUtil.createSoulItemWithCustomModelData(ownerName, material, customModelData);
         } else {
@@ -337,10 +347,16 @@ public class SoulManager {
         
         // Create soul item with player's CustomModelData
         String material = plugin.getConfigManager().getSoulMaterial();
-        Integer customModelData = playerCustomModelData.get(player.getUniqueId());
         ItemStack soulItem;
-        if (customModelData != null) {
-            soulItem = ItemUtil.createSoulItemWithCustomModelData(player.getName(), material, customModelData);
+        
+        // Only apply CustomModelData if resource pack is set
+        if (!Bukkit.getServer().getResourcePack().isEmpty()) {
+            Integer customModelData = playerCustomModelData.get(player.getUniqueId());
+            if (customModelData != null) {
+                soulItem = ItemUtil.createSoulItemWithCustomModelData(player.getName(), material, customModelData);
+            } else {
+                soulItem = ItemUtil.createSoulItem(player.getName(), material);
+            }
         } else {
             soulItem = ItemUtil.createSoulItem(player.getName(), material);
         }
@@ -352,7 +368,8 @@ public class SoulManager {
         }
         plugin.getParticleManager().playLoseEffect(player);
         SoundUtil.playSound(player, plugin.getConfigManager().getWithdrawSound());  // Add this line
-        plugin.getMessageUtil().sendMessage(player, "soul-withdrawn");
+        plugin.getMessageUtil().sendMessage(player, "soul-withdrawn", 
+                Map.of("souls", String.valueOf(data.getSouls())));
         return true;
     }
 

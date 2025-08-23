@@ -23,7 +23,7 @@ public class ParticleManager {
         Location location = player.getLocation().add(0, 1, 0);
 
         if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playDustPillarEffect(player, location, true); // true for lose effect
+            playSmashGroundEffect(player, location, true); // true for lose effect
         } else {
             playLegacyLoseEffect(player, location);
         }
@@ -37,7 +37,7 @@ public class ParticleManager {
         Location location = player.getLocation().add(0, 1, 0);
 
         if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playDustPillarEffect(player, location, false); // false for gain effect
+            playSmashGroundEffect(player, location, false); // false for gain effect
         } else {
             playLegacyGainEffect(player, location);
         }
@@ -45,33 +45,33 @@ public class ParticleManager {
 
     private void playLegacyLoseEffect(Player player, Location location) {
         try {
-            // Use smoke for 1.10-1.20 via ViaBackwards
-            Particle particle = Particle.SMOKE;
+            // Use SMOKE_NORMAL for 1.10-1.20 via ViaBackwards
+            Particle particle = Particle.SMOKE_NORMAL;
             int count = getAdjustedParticleCount(player, 20);
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning("Failed to spawn smoke particle. Falling back to default.");
             int count = getAdjustedParticleCount(player, 20);
-            player.spawnParticle(Particle.SMOKE, location, count, 0.5, 0.5, 0.5, 0.1);
+            player.spawnParticle(Particle.SMOKE_NORMAL, location, count, 0.5, 0.5, 0.5, 0.1);
         }
     }
 
     private void playLegacyGainEffect(Player player, Location location) {
         try {
-            // Use happy_villager for 1.10-1.20 via ViaBackwards
-            Particle particle = Particle.HAPPY_VILLAGER;
+            // Use VILLAGER_HAPPY for 1.10-1.20 via ViaBackwards
+            Particle particle = Particle.VILLAGER_HAPPY;
             int count = getAdjustedParticleCount(player, 15);
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning("Failed to spawn happy_villager particle. Falling back to default.");
             int count = getAdjustedParticleCount(player, 15);
-            player.spawnParticle(Particle.HAPPY_VILLAGER, location, count, 0.5, 0.5, 0.5, 0.1);
+            player.spawnParticle(Particle.VILLAGER_HAPPY, location, count, 0.5, 0.5, 0.5, 0.1);
         }
     }
 
-    private void playDustPillarEffect(Player player, Location location, boolean isLoseEffect) {
+    private void playSmashGroundEffect(Player player, Location location, boolean isLoseEffect) {
         try {
-            // Use dust_pillar (mace smash particle) for 1.21+
+            // Use DUST_PILLAR (mace smash particle) for 1.21+
             Particle particle = Particle.DUST_PILLAR;
             
             // Get color based on effect type
@@ -87,7 +87,7 @@ public class ParticleManager {
             int count = getAdjustedParticleCount(player, isLoseEffect ? 20 : 15);
             player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
         } catch (Exception e) {
-            // Fallback to legacy effects if dust_pillar is not available
+            // Fallback to legacy effects if DUST_PILLAR is not available
             if (isLoseEffect) {
                 playLegacyLoseEffect(player, location);
             } else {

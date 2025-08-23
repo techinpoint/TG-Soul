@@ -1,7 +1,7 @@
 name: TGSoul
 version: '${project.version}'
 main: com.tgsoul.TGSoulPlugin
-api-version: '1.20'
+api-version: '1.21'
 authors: [Prabin (TG)]
 description: A comprehensive soul system plugin for Minecraft.
 Check out our YouTube: www.youtube.com/@TechinpointGamerz
@@ -12,7 +12,7 @@ softdepend: [Geyser]
 commands:
   soul:
     description: Main soul command
-    usage: /<command> [help|recipe|give|take|set|get|unban|reload|top|stats|pack] [player|amount]
+    usage: /<command> [help|recipe|give|take|set|get|unban|reload|top|stats|pack] [player|amount|custommodeldata]
     permission: tgsoul.use
     aliases: [souls]
   soulwithdraw:

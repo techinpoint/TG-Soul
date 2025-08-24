@@ -10,6 +10,7 @@ import com.tgsoul.listeners.PlayerInteractListener;
 import com.tgsoul.listeners.PlayerJoinListener;
 import com.tgsoul.managers.ConfigManager;
 import com.tgsoul.managers.ParticleManager;
+import com.tgsoul.managers.RecipeManager;
 import com.tgsoul.managers.SoulManager;
 import com.tgsoul.utils.MessageUtil;
 import com.tgsoul.utils.VersionUtil;
@@ -23,6 +24,7 @@ public class TGSoulPlugin extends JavaPlugin {
     private SoulManager soulManager;
     private ConfigManager configManager;
     private ParticleManager particleManager;
+    private RecipeManager recipeManager;
     private MessageUtil messageUtil;
     private VersionUtil versionUtil;
 
@@ -31,15 +33,21 @@ public class TGSoulPlugin extends JavaPlugin {
         instance = this;
         versionUtil = new VersionUtil();
         getLogger().info("Detected Minecraft version: " + versionUtil.getVersion());
+        
+        // Initialize managers in correct order
         configManager = new ConfigManager(this);
-        configManager.loadConfig(); // Explicitly load config
+        configManager.loadConfig();
         messageUtil = new MessageUtil(this);
         particleManager = new ParticleManager(this);
         soulManager = new SoulManager(this);
+        recipeManager = new RecipeManager(this);
 
         // Register commands & listeners
         registerCommands();
         registerListeners();
+
+        // Register recipes
+        recipeManager.registerRecipes();
 
         // Register soul item models for resource pack compatibility
         ItemUtil.registerSoulModels();
@@ -48,16 +56,7 @@ public class TGSoulPlugin extends JavaPlugin {
         checkGeyserCompatibility();
 
         // Setup auto-save if enabled
-        if (configManager.isAutoSaveEnabled()) {
-            int saveInterval = configManager.getSaveInterval() * 20; // Convert seconds to ticks
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    soulManager.saveAllData();
-                }
-            }.runTaskTimer(this, saveInterval, saveInterval);
-            getLogger().info("Auto-save enabled with interval of " + configManager.getSaveInterval() + " seconds.");
-        }
+        setupAutoSave();
 
         getLogger().info("TGSoul has been enabled successfully!");
         getLogger().info("Compatible with MC " + versionUtil.getVersion() +
@@ -75,8 +74,21 @@ public class TGSoulPlugin extends JavaPlugin {
                 e.printStackTrace();
             }
         }
-        getServer().getScheduler().cancelTasks(this); // Cancel all scheduled tasks to prevent registration while disabled
+        getServer().getScheduler().cancelTasks(this);
         getLogger().info("TGSoul has been disabled!");
+    }
+
+    private void setupAutoSave() {
+        if (configManager.isAutoSaveEnabled()) {
+            int saveInterval = configManager.getSaveInterval() * 20; // Convert seconds to ticks
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    soulManager.saveAllData();
+                }
+            }.runTaskTimer(this, saveInterval, saveInterval);
+            getLogger().info("Auto-save enabled with interval of " + configManager.getSaveInterval() + " seconds.");
+        }
     }
 
     private void registerCommands() {
@@ -118,6 +130,10 @@ public class TGSoulPlugin extends JavaPlugin {
 
     public ParticleManager getParticleManager() {
         return particleManager;
+    }
+
+    public RecipeManager getRecipeManager() {
+        return recipeManager;
     }
 
     public MessageUtil getMessageUtil() {

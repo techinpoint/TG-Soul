@@ -9,7 +9,6 @@
 #                   Youtube: www.youtube.com/@TechinpointGamerz          #
 ##########################################################################
 
-
 prefix: "&8[&6TG Soul&8] &r"
 
 # Soul management
@@ -47,6 +46,8 @@ admin-took-souls: "&7Took &6{amount}&7 souls from &6{player}&7."
 admin-set-souls: "&7Set &6{player}'s&7 souls to &6{amount}&7."
 admin-unbanned: "&7Unbanned &6{player}&7 and restored their souls."
 config-reloaded: "&aConfiguration reloaded!"
+data-save-failed: "&cFailed to save player data! Check console for details."
+reload-failed: "&cFailed to reload configuration! Check console for details."
 
 # Help messages
 help-header: "&6&l=== TGSoul Help ==="
@@ -69,3 +70,7 @@ help-admin-pack: "&c/soul pack <player> <1-10> &7- Set player's soul CustomModel
 recipe-gui-title: "&6Revival Token Recipe"
 recipe-gui-info: "&7Place these items in a crafting table to create a Revival Token"
 recipe-gui-soul-info: "&7Use 3 of YOUR OWN souls in these positions"
+
+# Revival system
+revive-success: "&aYou have been successfully revived! You now have {souls} souls."
+revive-failed: "&cFailed to revive {player}. They may not need revival or you don't have enough souls."

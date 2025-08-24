@@ -3,14 +3,12 @@ package com.tgsoul.managers;
 import com.tgsoul.TGSoulPlugin;
 import com.tgsoul.data.PlayerSoulData;
 import com.tgsoul.utils.ItemUtil;
+import com.tgsoul.utils.SoulDataUtil;
+import com.tgsoul.utils.SoulGUIUtil;
 import org.bukkit.*;
 import com.tgsoul.utils.SoundUtil;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.BanList;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,17 +27,18 @@ public class SoulManager {
     private final Map<UUID, Integer> playerCustomModelData;
     private final File dataFile;
     private FileConfiguration dataConfig;
-    private final NamespacedKey recipeKey;
+    private final SoulDataUtil dataUtil;
+    private final SoulGUIUtil guiUtil;
 
     public SoulManager(TGSoulPlugin plugin) {
         this.plugin = plugin;
         this.playerData = new ConcurrentHashMap<>();
         this.playerCustomModelData = new ConcurrentHashMap<>();
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
-        this.recipeKey = new NamespacedKey(plugin, "revival_token");
+        this.dataUtil = new SoulDataUtil(this, plugin);
+        this.guiUtil = new SoulGUIUtil(plugin);
         initializeDataConfig();
         loadData();
-        registerRevivalTokenRecipe();
     }
 
     private void initializeDataConfig() {
@@ -47,84 +46,19 @@ public class SoulManager {
     }
 
     public void loadData() {
-        if (!dataFile.exists()) {
-            try {
-                dataFile.getParentFile().mkdirs();
-                dataFile.createNewFile();
-                saveToFile(); // Initialize with default structure if empty
-            } catch (IOException e) {
-                plugin.getLogger().severe("Could not create player data file: " + e.getMessage());
-                e.printStackTrace();
-                return;
-            }
-        }
-
-        // Reload the data configuration
-        dataConfig = YamlConfiguration.loadConfiguration(dataFile);
-
-        // Load all player data
-        playerData.clear();
-        for (String uuidString : dataConfig.getKeys(false)) {
-            try {
-                UUID uuid = UUID.fromString(uuidString);
-                ConfigurationSection section = dataConfig.getConfigurationSection(uuidString);
-                if (section != null) {
-                    String playerName = section.getString("playerName", "Unknown");
-                    int souls = section.getInt("souls", plugin.getConfigManager().getStartingSouls());
-                    boolean needsRevival = section.getBoolean("needsRevival", false);
-                    String lastSeen = section.getString("lastSeen", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                    playerData.put(uuid, new PlayerSoulData(uuid, playerName, souls, needsRevival, lastSeen));
-                }
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid UUID in playerdata.yml: " + uuidString);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Error loading data for UUID " + uuidString + ": " + e.getMessage() + ". Skipping this entry.");
-            }
-        }
-        plugin.getLogger().info("Loaded " + playerData.size() + " player data entries.");
+        dataUtil.loadPlayerData(dataFile, dataConfig, playerData, playerCustomModelData);
     }
 
     public void saveAllData() {
-        for (PlayerSoulData data : playerData.values()) {
-            savePlayerData(data);
-        }
-        saveToFile();
+        dataUtil.saveAllPlayerData(playerData, playerCustomModelData, dataConfig, dataFile);
     }
 
     private void savePlayerData(PlayerSoulData data) {
-        String path = data.getUuid().toString();
-        dataConfig.set(path + ".name", data.getPlayerName());
-        dataConfig.set(path + ".souls", data.getSouls());
-        dataConfig.set(path + ".needsRevival", data.needsRevival());
-        dataConfig.set(path + ".lastSeen", data.getLastSeen());
-        
-        // Save CustomModelData if it exists
-        Integer customModelData = playerCustomModelData.get(data.getUuid());
-        if (customModelData != null) {
-            dataConfig.set(path + ".customModelData", customModelData);
-        }
-        
-        plugin.getLogger().info("Saved data for " + data.getPlayerName() + ": " + data.getSouls() + " souls");
+        dataUtil.savePlayerData(data, playerCustomModelData, dataConfig);
     }
 
     private void saveToFile() {
-        FileConfiguration configToSave = dataConfig; // Effectively final copy for lambda
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                configToSave.save(dataFile);
-                plugin.getLogger().info("Player data saved to playerdata.yml successfully.");
-            } catch (IOException e) {
-                plugin.getLogger().severe("Could not save player data to playerdata.yml: " + e.getMessage());
-                e.printStackTrace();
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        if (player.hasPermission("tgsoul.admin")) {
-                            plugin.getMessageUtil().sendMessage(player, "data-save-failed");
-                        }
-                    }
-                });
-            }
-        });
+        dataUtil.saveToFile(dataConfig, dataFile);
     }
 
     public PlayerSoulData getPlayerData(UUID uuid) {
@@ -415,146 +349,9 @@ public class SoulManager {
         }
         return plugin.getConfigManager().getDefaultCustomModelData();
     }
-    private void registerRevivalTokenRecipe() {
-        try {
-            Bukkit.removeRecipe(recipeKey);
-        } catch (Exception ignored) {}
-        String configuredMaterial = plugin.getConfigManager().getRevivalTokenMaterial();
-        Material material = Material.matchMaterial(configuredMaterial.toUpperCase());
-        if (material == null) {
-            plugin.getLogger().warning("Invalid Revival Token material in config: " + configuredMaterial + ". Using BEACON as fallback.");
-            material = Material.BEACON;
-        }
-        ItemStack result = ItemUtil.createRevivalToken("System", "System", material.name());
-        ShapedRecipe recipe = new ShapedRecipe(recipeKey, result);
-        recipe.shape("ABC", "DEF", "GHI");
-        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("revival-token.recipe");
-        boolean hasIngredients = false;
-        if (recipeConfig != null) {
-            for (String key : recipeConfig.getKeys(false)) {
-                String materialName = recipeConfig.getString(key);
-                if (key.length() != 3 || key.charAt(0) != 'a' || !Character.isDigit(key.charAt(1)) || !Character.isDigit(key.charAt(2))) {
-                    plugin.getLogger().warning("Invalid recipe key in config: " + key);
-                    continue;
-                }
-                int row = key.charAt(1) - '0';
-                int col = key.charAt(2) - '0';
-                char recipeChar = (char) ('A' + (row - 1) * 3 + (col - 1));
-                if ("SOUL_ITEM".equals(materialName)) {
-                    String soulMaterialName = plugin.getConfigManager().getSoulMaterial();
-                    try {
-                        Material placeholder = Material.valueOf(soulMaterialName.toUpperCase());
-                        recipe.setIngredient(recipeChar, placeholder);
-                        hasIngredients = true;
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid soul material for placeholder: " + soulMaterialName);
-                    }
-                    continue;
-                }
-                try {
-                    Material mat = Material.valueOf(materialName.toUpperCase());
-                    recipe.setIngredient(recipeChar, mat);
-                    hasIngredients = true;
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("Invalid material in revival token recipe: " + materialName + " for key " + key);
-                }
-            }
-        } else {
-            plugin.getLogger().warning("Missing 'revival-token.recipe' section in config.yml. Recipe registration skipped.");
-            return;
-        }
-        if (!hasIngredients) {
-            plugin.getLogger().warning("No valid ingredients found for revival token recipe. Using defaults.");
-            recipe.setIngredient('A', Material.NETHERITE_BLOCK);
-            recipe.setIngredient('B', Material.NETHER_STAR);
-            recipe.setIngredient('C', Material.NETHERITE_BLOCK);
-            recipe.setIngredient('D', Material.GHAST_TEAR);
-            recipe.setIngredient('E', Material.GHAST_TEAR);
-            recipe.setIngredient('F', Material.GHAST_TEAR);
-            recipe.setIngredient('G', Material.NETHERITE_BLOCK);
-            recipe.setIngredient('H', Material.NETHER_STAR);
-            recipe.setIngredient('I', Material.NETHERITE_BLOCK);
-        }
-        try {
-            Bukkit.addRecipe(recipe);
-            plugin.getLogger().info("Revival token recipe registered successfully with material: " + material.name());
-        } catch (IllegalStateException e) {
-            plugin.getLogger().severe("Failed to register revival token recipe: " + e.getMessage());
-        }
-    }
 
     public void openRecipeGUI(Player player) {
-        Inventory gui = Bukkit.createInventory(null, 54, ChatColor.translateAlternateColorCodes('&',
-                plugin.getMessageUtil().getMessage("recipe-gui-title")));
-        ItemStack glassPane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-        ItemMeta glassMeta = glassPane.getItemMeta();
-        if (glassMeta != null) {
-            glassMeta.setDisplayName(" ");
-            glassPane.setItemMeta(glassMeta);
-        }
-        for (int i = 0; i < 54; i++) gui.setItem(i, glassPane);
-        // Define the 3x3 crafting grid slots in the GUI
-        int[] craftingSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
-
-        // Get recipe configuration from the correct path
-        ConfigurationSection recipeConfig = plugin.getConfig().getConfigurationSection("revival-token.recipe");
-        if (recipeConfig != null) {
-            String[] positions = {"a11", "a12", "a13", "a21", "a22", "a23", "a31", "a32", "a33"};
-            for (int i = 0; i < positions.length && i < craftingSlots.length; i++) {
-                String materialName = recipeConfig.getString(positions[i]);
-                if (materialName == null) continue;
-
-                ItemStack item;
-                if ("SOUL_ITEM".equals(materialName)) {
-                    item = createSoulItem(player.getName());
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta != null) {
-                        List<String> lore = meta.getLore();
-                        if (lore == null) lore = new ArrayList<>();
-                        lore.add(ChatColor.YELLOW + "Use YOUR OWN souls here!");
-                        meta.setLore(lore);
-                        item.setItemMeta(meta);
-                    }
-                } else {
-                    try {
-                        Material material = Material.valueOf(materialName);
-                        item = new ItemStack(material);
-                    } catch (IllegalArgumentException e) {
-                        item = new ItemStack(Material.BARRIER);
-                        ItemMeta meta = item.getItemMeta();
-                        if (meta != null) {
-                            meta.setDisplayName(ChatColor.RED + "Invalid Material: " + materialName);
-                            item.setItemMeta(meta);
-                        }
-                    }
-                }
-                gui.setItem(craftingSlots[i], item);
-            }
-        }
-        String configuredMaterial = plugin.getConfigManager().getRevivalTokenMaterial();
-        Material guiMaterial = Material.matchMaterial(configuredMaterial.toUpperCase());
-        if (guiMaterial == null) {
-            plugin.getLogger().warning("Invalid Revival Token material in config for GUI: " + configuredMaterial + ". Using BEACON.");
-            guiMaterial = Material.BEACON;
-        }
-        ItemStack result = ItemUtil.createRevivalToken(player.getName(), player.getName(), guiMaterial.name());
-        gui.setItem(24, result);
-        ItemStack info = new ItemStack(Material.BOOK);
-        ItemMeta infoMeta = info.getItemMeta();
-        if (infoMeta != null) {
-            infoMeta.setDisplayName(ChatColor.GOLD + "Recipe Information");
-            infoMeta.setLore(Arrays.asList(
-                    ChatColor.GRAY + "Place these items in a crafting table",
-                    ChatColor.GRAY + "to create a Revival Token.",
-                    "",
-                    ChatColor.YELLOW + "Important:",
-                    ChatColor.RED + "You must use YOUR OWN souls!",
-                    ChatColor.RED + "Other players' souls won't work!"
-            ));
-            info.setItemMeta(infoMeta);
-        }
-        gui.setItem(49, info);
-        player.openInventory(gui);
+        guiUtil.openRecipeGUI(player, this);
     }
 
     public boolean unbanPlayer(String playerName) {
@@ -611,12 +408,20 @@ public class SoulManager {
     public void reload() {
         try {
             saveAllData(); // Save current data before reloading
-            registerRevivalTokenRecipe();
             loadData();
             plugin.getLogger().info("SoulManager reloaded successfully.");
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to reload SoulManager: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    // Getters for utility classes
+    public Map<UUID, PlayerSoulData> getPlayerDataMap() {
+        return playerData;
+    }
+
+    public Map<UUID, Integer> getPlayerCustomModelDataMap() {
+        return playerCustomModelData;
     }
 }

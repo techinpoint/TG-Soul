@@ -9,20 +9,17 @@
 #                   Youtube: www.youtube.com/@TechinpointGamerz          #
 ##########################################################################
 
-
-
-
-
 # TGSoul Configuration
 # Plugin by TGSoul - Compatible with MC 1.20-1.21.8 and GeyserMC
 
 soul:
-  # Manage Sounds
-  # You can get sound list from[](https://www.digminecraft.com/lists/sound_list_pc.php) but replace . with _
+  # Manage Sounds (Paper 1.21.1 compatible)
+  # Use minecraft sound names without the "minecraft:" prefix
   sounds:
-    revival: BLOCK_END_PORTAL_SPAWN # Sound when using Revival Token
-    withdraw: ENTITY_WITHER_SPAWN    # Sound when withdrawing a soul
-    gain: BLOCK_NOTE_BLOCK_PLING  # Sound when gaining a soul
+    revival: "block.end_portal.spawn"     # Sound when using Revival Token
+    withdraw: "entity.wither.spawn"       # Sound when withdrawing a soul
+    gain: "block.note_block.pling"        # Sound when gaining a soul
+
   # Starting number of souls for new players
   starting: 3
 
@@ -46,13 +43,22 @@ soul:
   # Drop soul on mob death (if false, souls only drop on PvP/environmental deaths)
   drop-on-mob-death: false
 
+  # Revival Token Configuration
   revival-token:
+    # Enable/disable revival token system
+    enabled: true
+    
     # Material for the Revival Token
     material: "BEACON"
 
-    # Recipe for Revival Token (3x3 crafting grid)
+    # Recipe pattern (3 lines for 3x3 crafting grid)
+    pattern:
+      - "ABC"
+      - "DEF" 
+      - "GHI"
+
+    # Recipe ingredients (3x3 grid positions)
     # Use "SOUL_ITEM" as a placeholder for positions requiring the player's own soul items
-    # Gui will automatically update after changes here
     recipe:
       a11: "PAPER"
       a12: "SOUL_ITEM"
@@ -63,6 +69,7 @@ soul:
       a31: "NETHERITE_BLOCK"
       a32: "NETHER_STAR"
       a33: "NETHERITE_BLOCK"
+
   # Soul CustomModelData system
   custom-model-data:
     enabled: true      # Enable CustomModelData system
@@ -70,30 +77,29 @@ soul:
     min: 1             # Range for random assignment (1-10)
     max: 10
 
+  # Particle effects (Paper 1.21.1 compatible)
   effects:
-    # Legacy effects for Minecraft 1.20 and below
     lose:
-      particle: "smash_ground"  # Updated for 1.21+ compatibility (mace smash effect)
+      particle: "dust"
       color: "#808080"  # Gray for lose/withdraw
       count: 20
       enabled: true
     gain:
-      particle: "smash_ground"  # Updated for 1.21+ compatibility (mace smash effect)
+      particle: "dust"
       color: "#00FFFF"  # Cyan for gain
       count: 15
       enabled: true
 
-  # Advanced particle effects for 1.21+ (uses configurable particles)
+  # Advanced particle effects for 1.21+ (uses modern particles)
   advanced-effects:
     lose:
       particle1: "TRIAL_SPAWNER_DETECTION"  # Cyan star-like particles (1.21+)
       particle2: "FALLING_DUST"             # Falling block dust particles
       size: 1.0
     gain:
-      particle: "DUST_PILLAR"
+      particle: "DUST"
       color: "#00FFFF"                      # Cyan
       size: 1.2
-
 
 # Database settings (for future expansion)
 database:

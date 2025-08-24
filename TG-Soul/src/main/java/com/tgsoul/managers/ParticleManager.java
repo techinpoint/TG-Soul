@@ -23,12 +23,7 @@ public class ParticleManager {
         }
 
         Location location = player.getLocation().add(0, 1, 0);
-
-        if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playAdvancedLoseEffect(player, location);
-        } else {
-            playLegacyLoseEffect(player, location);
-        }
+        playAdvancedLoseEffect(player, location);
     }
 
     public void playGainEffect(Player player) {
@@ -37,49 +32,12 @@ public class ParticleManager {
         }
 
         Location location = player.getLocation().add(0, 1, 0);
-
-        if (plugin.getVersionUtil().isVersion121OrHigher()) {
-            playAdvancedGainEffect(player, location);
-        } else {
-            playLegacyGainEffect(player, location);
-        }
-    }
-
-    /**
-     * Legacy lose effect for Minecraft 1.10 to 1.20.x
-     * Uses SMOKE_NORMAL as a fallback particle
-     */
-    private void playLegacyLoseEffect(Player player, Location location) {
-        try {
-            Particle particle = Particle.SMOKE;
-            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getLoseParticleCount());
-            player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
-
-            plugin.getLogger().fine("Played legacy lose effect for " + player.getName() + " with " + count + " particles");
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to spawn legacy lose particle for " + player.getName() + ": " + e.getMessage());
-        }
-    }
-
-    /**
-     * Legacy gain effect for Minecraft 1.10 to 1.20.x
-     * Uses HAPPY_VILLAGER as a celebratory particle
-     */
-    private void playLegacyGainEffect(Player player, Location location) {
-        try {
-            Particle particle = Particle.HAPPY_VILLAGER;
-            int count = getAdjustedParticleCount(player, plugin.getConfigManager().getGainParticleCount());
-            player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0.1);
-
-            plugin.getLogger().fine("Played legacy gain effect for " + player.getName() + " with " + count + " particles");
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to spawn legacy gain particle for " + player.getName() + ": " + e.getMessage());
-        }
+        playAdvancedGainEffect(player, location);
     }
 
     /**
      * Advanced lose effect for Minecraft 1.21+
-     * Uses configurable particles (e.g., TRIAL_SPAWNER_DETECTION and FALLING_DUST)
+     * Uses configurable particles with proper DustOptions
      */
     private void playAdvancedLoseEffect(Player player, Location location) {
         if (!plugin.getConfigManager().areLoseEffectsEnabled()) {
@@ -93,36 +51,39 @@ public class ParticleManager {
             // Get configurable particles from config
             String particle1Name = plugin.getConfigManager().getAdvancedLoseParticle1().toUpperCase();
             String particle2Name = plugin.getConfigManager().getAdvancedLoseParticle2().toUpperCase();
-            Particle particle1 = Particle.valueOf(particle1Name);
-            Particle particle2 = Particle.valueOf(particle2Name);
-
+            
             // Spawn first particle (e.g., TRIAL_SPAWNER_DETECTION for cyan stars)
-            player.spawnParticle(particle1, location, count, 0.5, 0.5, 0.5, size);
+            try {
+                Particle particle1 = Particle.valueOf(particle1Name);
+                player.spawnParticle(particle1, location, count, 0.5, 0.5, 0.5, size);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid particle1 name: " + particle1Name);
+            }
 
             // Spawn second particle (e.g., FALLING_DUST for gray dust)
-            if (particle2 == Particle.FALLING_DUST) {
-                BlockData blockData = Material.STONE.createBlockData(); // Gray dust from stone
-                player.spawnParticle(particle2, location, count, 0.5, 0.5, 0.5, size, blockData);
-            } else {
-                player.spawnParticle(particle2, location, count, 0.5, 0.5, 0.5, size);
+            try {
+                Particle particle2 = Particle.valueOf(particle2Name);
+                if (particle2 == Particle.FALLING_DUST) {
+                    BlockData blockData = Material.STONE.createBlockData(); // Gray dust from stone
+                    player.spawnParticle(particle2, location, count, 0.5, 0.5, 0.5, size, blockData);
+                } else {
+                    player.spawnParticle(particle2, location, count, 0.5, 0.5, 0.5, size);
+                }
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid particle2 name: " + particle2Name);
             }
 
             plugin.getLogger().fine("Played advanced lose effect for " + player.getName() +
                     " with " + particle1Name + " and " + particle2Name + ", count " + count);
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Invalid particle name in config for lose effect: " + e.getMessage() +
-                    ". Falling back to legacy effect.");
-            playLegacyLoseEffect(player, location);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to spawn advanced lose particle for " + player.getName() +
-                    ": " + e.getMessage() + ". Falling back to legacy effect.");
-            playLegacyLoseEffect(player, location);
+                    ": " + e.getMessage());
         }
     }
 
     /**
      * Advanced gain effect for Minecraft 1.21+
-     * Uses DUST_PILLAR with configurable color
+     * Uses DUST with proper DustOptions
      */
     private void playAdvancedGainEffect(Player player, Location location) {
         if (!plugin.getConfigManager().areGainEffectsEnabled()) {
@@ -130,21 +91,20 @@ public class ParticleManager {
         }
 
         try {
-            Particle particle = Particle.DUST_PILLAR;
             String colorHex = plugin.getConfigManager().getAdvancedGainColor();
             Color color = parseColor(colorHex);
             double size = plugin.getConfigManager().getAdvancedGainSize();
             int count = getAdjustedParticleCount(player, plugin.getConfigManager().getGainParticleCount());
 
+            // Use DUST particle with proper DustOptions
             Particle.DustOptions dustOptions = new Particle.DustOptions(color, (float) size);
-            player.spawnParticle(particle, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
+            player.spawnParticle(Particle.DUST, location, count, 0.5, 0.5, 0.5, 0, dustOptions);
 
             plugin.getLogger().fine("Played advanced gain effect for " + player.getName() +
                     " with color " + colorHex + ", size " + size + ", count " + count);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to spawn advanced gain particle for " + player.getName() +
-                    ": " + e.getMessage() + ". Falling back to legacy effect.");
-            playLegacyGainEffect(player, location);
+                    ": " + e.getMessage());
         }
     }
 
